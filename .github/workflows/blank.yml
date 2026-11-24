@@ -1,0 +1,47 @@
+name: Build BaridOS ISO
+
+on:
+  workflow_dispatch:            # يدوي من تاب Actions
+  push:
+    tags: ["v*"]                # أو عند عمل tag بصيغة v0.1.0
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install live-build
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y live-build debootstrap xorriso isolinux \
+            syslinux-efi squashfs-tools mtools dosfstools
+
+      - name: Build ISO (secrets baked in, never committed)
+        env:
+          BARID_AI_KEY: ${{ secrets.BARID_AI_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          chmod +x build/build.sh
+          sudo ./build/build.sh
+          ISO=$(ls build-work/baridos-*.iso | head -n1)
+          echo "ISO_PATH=$ISO" >> "$GITHUB_ENV"
+
+      - name: Upload ISO artifact (تحميل مؤقت)
+        uses: actions/upload-artifact@v4
+        with:
+          name: baridos-iso
+          path: build-work/baridos-*.iso*
+          retention-days: 7
+
+      - name: Create GitHub Release (لينك التحميل الدائم)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build-work/baridos-*.iso*
+          generate_release_notes: true
