@@ -1,0 +1,91 @@
+#!/bin/bash
+# BaridOS chroot hook: runs inside the live system during ISO build
+set -e
+
+# Optional packages: install if available, never fail the build
+apt-get update || true
+for pkg in nvidia-powerd libstrangle vkbasalt nvidia-smi; do
+    apt-get install -y --no-install-recommends "$pkg" || echo "I: $pkg not available, skipped"
+done
+
+# nbfc-linux (laptop EC fan control) — install prebuilt release if network is available
+if ! command -v nbfc >/dev/null 2>&1; then
+    curl -fsSL https://api.github.com/repos/nbfc-linux/nbfc-linux/releases/latest \
+      | grep -o 'https://[^"]*\.deb' | head -n1 > /tmp/nbfc.url || true
+    if [ -s /tmp/nbfc.url ]; then
+        curl -fsSL "$(cat /tmp/nbfc.url)" -o /tmp/nbfc.deb && dpkg -i /tmp/nbfc.deb || true
+    fi
+fi
+
+echo "I: BaridOS — enabling services"
+
+# Thermal & power services
+systemctl enable thermald || true
+systemctl enable tlp || true
+systemctl enable nvidia-powerd || true
+
+# BaridOS services
+systemctl enable barid-thermo.service || true
+systemctl enable barid-update.timer || true
+
+# Generate locales
+sed -i 's/# ar_EG.UTF-8 UTF-8/ar_EG.UTF-8 UTF-8/' /etc/locale.gen 2>/dev/null || true
+sed -i 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen 2>/dev/null || true
+locale-gen || true
+
+# NVIDIA: enable persistence + power management for laptops
+mkdir -p /etc/modprobe.d
+cat > /etc/modprobe.d/nvidia-power.conf <<'EOF'
+options nvidia NVreg_PreserveVideoMemoryAllocations=1
+options nvidia NVreg_DynamicPowerManagement=0x02
+EOF
+
+# NVIDIA runtime PM (laptop battery + heat)
+mkdir -p /etc/udev/rules.d
+cat > /etc/udev/rules.d/80-nvidia-pm.rules <<'EOF'
+# Runtime power management for NVIDIA GPUs on battery
+ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="auto"
+ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030200", TEST=="power/control", ATTR{power/control}="auto"
+EOF
+
+# NetworkManager: don't wait for Ethernet at boot
+mkdir -p /etc/NetworkManager/conf.d
+cat > /etc/NetworkManager/conf.d/10-wifi-priority.conf <<'EOF'
+[device]
+wifi.backend=wpa_supplicant
+
+[connection]
+# Prefer Wi-Fi, never block boot on wired
+ethernet.auto-negotiate=true
+EOF
+
+# MangoHud default config (FPS limit + readable overlay)
+mkdir -p /etc/MangoHud
+cat > /etc/MangoHud/MangoHud.conf <<'EOF'
+fps_limit=0
+toggle_fps_limit=F3
+legacy_layout=false
+gpu_stats
+gpu_temp
+gpu_power
+cpu_stats
+cpu_temp
+ram
+vram
+fps
+frametime
+position=top-left
+output_folder=/home/user/.config/MangoHud
+log_duration=30
+toggle_logging=F4
+EOF
+
+# Flatpak repo for on-demand heavy apps (Blender, GIMP, PrismLauncher)
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo || true
+
+# Executable bits for BaridOS scripts
+chmod +x /opt/barid/*/*.py 2>/dev/null || true
+chmod +x /opt/barid/*.sh 2>/dev/null || true
+
+# Default user for live session
+echo "I: BaridOS setup done"

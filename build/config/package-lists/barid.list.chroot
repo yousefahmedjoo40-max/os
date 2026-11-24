@@ -1,0 +1,71 @@
+# === BaridOS core (small footprint, no office suites/bloat) ===
+
+# --- Base system ---
+systemd-sysv
+sudo
+locales
+console-setup
+dbus
+udev
+
+# --- Networking: Wi-Fi first, no Ethernet required ---
+network-manager
+network-manager-gnome
+wpasupplicant
+iw
+firmware-linux
+firmware-linux-nonfree
+firmware-misc-nonfree
+firmware-iwlwifi
+firmware-realtek
+firmware-atheros
+firmware-brcm80211
+firmware-ti-connectivity
+avahi-daemon
+openssh-client
+curl
+wget
+
+# --- NVIDIA laptop graphics ---
+nvidia-driver
+mesa-utils
+vulkan-tools
+libgl1-mesa-dri
+va-driver-all
+
+# --- Thermal management stack ---
+thermald
+lm-sensors
+fancontrol
+powertop
+tlp
+tlp-rdw
+
+# --- FPS overlay + frame limiting for games ---
+mangohud
+
+# --- Desktop: lightweight Xfce (small, fast) ---
+xfce4
+xfce4-goodies
+lightdm
+lightdm-gtk-greeter
+xorg
+adwaita-icon-theme
+
+# --- Audio/PipeWire ---
+pipewire
+pipewire-pulse
+wireplumber
+pavucontrol
+
+# --- BaridOS apps runtime ---
+python3
+python3-tk
+python3-requests
+python3-psutil
+git
+unzip
+jq
+
+# --- On-demand heavy apps (Blender/GIMP/PrismLauncher via Flatpak) ---
+flatpak

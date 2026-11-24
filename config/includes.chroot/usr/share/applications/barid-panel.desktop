@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=BaridOS Panel
+Name[ar]=لوحة BaridOS
+Comment=Temperature, FPS and fan control
+Comment[ar]=الحرارة والفريمات والتحكم في المراوح
+Exec=barid-panel
+Icon=xfce4-sensors-plugin
+Terminal=false
+Type=Application
+Categories=Settings;Utility;

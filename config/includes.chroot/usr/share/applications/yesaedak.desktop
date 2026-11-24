@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Yesaedak AI
+Name[ar]=يساعدك — المساعد الذكي
+Comment=BaridOS AI assistant (Gemini 3.5 Flash-Lite)
+Comment[ar]=المساعد الذكي لنظام BaridOS
+Exec=yesaedak-gui
+Icon=help-browser
+Terminal=false
+Type=Application
+Categories=Utility;AI;

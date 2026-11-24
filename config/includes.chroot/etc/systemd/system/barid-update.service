@@ -1,0 +1,6 @@
+[Unit]
+Description=BaridOS updater (تحديثات Supabase)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/barid/barid-update/updater.py --apply

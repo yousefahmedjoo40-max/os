@@ -1,0 +1,13 @@
+[Unit]
+Description=BaridOS thermal daemon (تبريد ذكي)
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/barid/barid-thermo/barid_thermo.py
+Restart=always
+RestartSec=3
+Nice=-5
+
+[Install]
+WantedBy=multi-user.target
