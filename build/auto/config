@@ -1,25 +1,26 @@
 #!/bin/bash
 # BaridOS live-build configuration
-# Base: Debian 13 (trixie) amd64 with non-free firmware + NVIDIA
 set -e
 
 lb config noauto \
     --distribution trixie \
     --architectures amd64 \
     --archive-areas "main contrib non-free non-free-firmware" \
+    --mirror-bootstrap "https://deb.debian.org/debian/" \
+    --mirror-binary "https://deb.debian.org/debian/" \
+    --mirror-chroot "https://deb.debian.org/debian/" \
+    --mirror-chroot-security "https://deb.debian.org/debian-security/" \
+    --mirror-binary-security "https://deb.debian.org/debian-security/" \
     --debian-installer live \
     --iso-volume "BARIDOS" \
     --iso-publisher "BaridOS Team" \
-    --image-name "baridos" \
+    --iso-application "baridos" \
     --linux-flavours amd64 \
     --bootappend-live "boot=live components quiet splash" \
     --security true \
     --updates true \
     --backports true \
-    --debootstrap-options "--variant=minbase" \
     --compression gzip \
     --binary-images iso-hybrid \
     --memtest memtest86+ \
     --source-images none
-
-# Keep ISO small: no source packages, minimal bootstrap
